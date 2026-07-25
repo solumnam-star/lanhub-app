@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 import json
 import socket
@@ -19,18 +19,15 @@ class CoreSystem:
     def _get_app_storage_dir(self):
         """Xác định đường dẫn lưu trữ tương thích cả Android và PC"""
         if "ANDROID_ARGUMENT" in os.environ or self.os_type == "Linux":
-            # Chạy trên Android (Kivy/Buildozer environment)
             try:
                 from android.permissions import request_permissions, Permission
                 request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
             except ImportError:
                 pass
             
-            # Thư mục lưu trữ nội bộ của App trên Android
             base_path = os.environ.get("ANDROID_PRIVATE", os.path.expanduser("~"))
             storage_path = os.path.join(base_path, "LANHUB_Data")
         else:
-            # Chạy trên Windows/MacOS
             appdata = os.environ.get("LOCALAPPDATA", os.path.expanduser("~"))
             storage_path = os.path.join(appdata, "LANHUB_Server")
 
@@ -49,7 +46,7 @@ class CoreSystem:
         return os.path.join(self.app_dir, "Shared_Files")
 
     def get_hwid(self):
-        """Lấy HWID định danh thiết bị (thay thế WMIC Windows cũ)"""
+        """Lấy HWID định danh thiết bị"""
         try:
             if self.os_type == "Linux" or "ANDROID_ARGUMENT" in os.environ:
                 try:
@@ -63,10 +60,9 @@ class CoreSystem:
                 except Exception:
                     pass
             
-            # Fallback cho PC hoặc khi không lấy được Android ID
             mac_num = uuid.getnode()
             return f"HWID-{hex(mac_num)[2:].upper()}"
-        except Exception as e:
+        except Exception:
             return "HWID-GENERIC-MOBILE-001"
 
     def get_local_ip(self):
