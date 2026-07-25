@@ -46,8 +46,11 @@ jobs:
         version = 1.0.0
         requirements = python3,kivy==2.2.1,flask,requests,jinja2,werkzeug,urllib3,certifi,chardet,idna,pyjnius,android
         android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, ACCESS_NETWORK_STATE, CHANGE_WIFI_MULTICAST_STATE
-        android.api = 33
+        
+        # Hạ API xuống 31 và chỉ định NDK 25b để tránh lỗi biên dịch C++ (harfbuzz)
+        android.api = 31
         android.minapi = 21
+        android.ndk = 25b
         android.accept_sdk_license = True
         android.archs = arm64-v8a
 
