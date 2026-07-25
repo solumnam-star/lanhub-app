@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -24,38 +24,19 @@ jobs:
         sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev \
           build-essential libsqlite3-dev sqlite3 bzip2 libbz2-dev zlib1g-dev \
           libgdbm-dev libgdbm-compat-dev liblldb-dev libreadline-dev \
-          libncurses5-dev libncursesw5-dev libmaxminddb-dev checkinstall zip unzip openjdk-17-jdk
+          libncurses5-dev libncursesw5-dev libmaxminddb-dev checkinstall zip unzip openjdk-17-jdk \
+          autoconf libtool pkg-config cmake
+
+        pip install --upgrade pip
         pip install --upgrade "cython==0.29.33" buildozer
 
-    - name: Ensure main.py exists
+    - name: Prepare buildozer.spec and main.py
       run: |
         if [ ! -f main.py ] && [ -f main_mobile.py ]; then
           cp main_mobile.py main.py
         fi
-
-    - name: Create buildozer.spec if not exists
-      run: |
-        if [ ! -f buildozer.spec ]; then
-          cat << 'EOF' > buildozer.spec
-        [app]
-        title = LANHUB Server
-        package.name = lanhub
-        package.domain = org.lanhub
-        source.dir = .
-        source.include_exts = py,png,jpg,kv,atlas,html,css,js,json,txt
-        source.include_patterns = templates/*
-        version = 1.0.0
-        requirements = python3,kivy==2.2.1,flask,requests,jinja2,werkzeug,urllib3,certifi,chardet,idna
-        android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, ACCESS_NETWORK_STATE, CHANGE_WIFI_MULTICAST_STATE
-        android.api = 33
-        android.minapi = 21
-        android.accept_sdk_license = True
-        android.archs = arm64-v8a
-
-        [buildozer]
-        log_level = 2
-        warn_on_root = 0
-        EOF
+        if [ -f LANHUBPro.spec ]; then
+          cp LANHUBPro.spec buildozer.spec
         fi
 
     - name: Build APK with Buildozer
