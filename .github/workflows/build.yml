@@ -1,0 +1,69 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev \
+          build-essential libsqlite3-dev sqlite3 bzip2 libbz2-dev zlib1g-dev \
+          libgdbm-dev libgdbm-compat-dev liblldb-dev libreadline-dev \
+          libncurses5-dev libncursesw5-dev libmaxminddb-dev checkinstall zip unzip openjdk-17-jdk
+        pip install --upgrade "cython==0.29.33" buildozer
+
+    - name: Ensure main.py exists
+      run: |
+        if [ ! -f main.py ] && [ -f main_mobile.py ]; then
+          cp main_mobile.py main.py
+        fi
+
+    - name: Create buildozer.spec if not exists
+      run: |
+        if [ ! -f buildozer.spec ]; then
+          cat << 'EOF' > buildozer.spec
+        [app]
+        title = LANHUB Server
+        package.name = lanhub
+        package.domain = org.lanhub
+        source.dir = .
+        source.include_exts = py,png,jpg,kv,atlas,html,css,js,json,txt
+        source.include_patterns = templates/*
+        version = 1.0.0
+        requirements = python3,kivy==2.2.1,flask,requests,jinja2,werkzeug,urllib3,certifi,chardet,idna
+        android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, ACCESS_NETWORK_STATE, CHANGE_WIFI_MULTICAST_STATE
+        android.api = 33
+        android.minapi = 21
+        android.accept_sdk_license = True
+        android.archs = arm64-v8a
+
+        [buildozer]
+        log_level = 2
+        warn_on_root = 0
+        EOF
+        fi
+
+    - name: Build APK with Buildozer
+      run: |
+        yes | buildozer -v android debug
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: LANHUB-APK
+        path: bin/*.apk
